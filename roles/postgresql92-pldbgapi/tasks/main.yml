@@ -1,0 +1,34 @@
+---
+# postgresql92-postgresql-devel,openssl-develのインストール
+- name: install postgresql92-postgresql-devel,openssl-devel
+  yum: name={{ item }} state=present
+  with_items:
+  - postgresql92-postgresql-devel
+  - openssl-devel
+# OPcacheのインストール
+- name: check pldgbapi extension
+  command: test -f /opt/rh/postgresql92/root/usr/lib64/pgsql/plugin_debugger.so
+  register: result
+  ignore_errors: true
+- name: git clone pldbgapi source 1
+  command: rm -rf /root/pldebugger
+  ignore_errors: true
+  when: result|failed
+- name: git clone pldbgapi source 2
+  git: repo=git://git.postgresql.org/git/pldebugger.git dest=/root/pldebugger
+  when: result|failed
+- name: modify Makefile
+  command: sed -i.bak -e "s/\$(top_builddir)\/src\/pl\/plpgsql\/src/\/opt\/rh\/postgresql92\/root\/usr\/include\/pgsql\/server/g" /root/pldebugger/Makefile
+  when: result|failed
+- name: make
+  command: chdir=/root/pldebugger env USE_PGXS=1 make
+  when: result|failed
+- name: make install
+  command: chdir=/root/pldebugger env USE_PGXS=1 make install
+  when: result|failed
+- name: config postgresql.conf
+  command: sed -i.bak -e "s/#shared_preload_libraries = ''/shared_preload_libraries = '\/opt\/rh\/postgresql92\/root\/usr\/lib64\/pgsql\/plugin_debugger.so'/" /opt/rh/postgresql92/root/var/lib/pgsql/data/postgresql.conf
+  when: result|failed
+- name: restart postgresql92-postgresql
+  service: name=postgresql92-postgresql state=restarted
+  when: result|failed
