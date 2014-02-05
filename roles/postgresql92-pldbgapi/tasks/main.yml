@@ -1,8 +1,11 @@
 ---
-# postgresql92-postgresql-devel,openssl-develのインストール
-- name: install postgresql92-postgresql-devel,openssl-devel
+- name: Install Development tools
+  shell: yum -y groupinstall 'Development Tools'
+# git,postgresql92-postgresql-devel,openssl-develのインストール
+- name: install git,postgresql92-postgresql-devel,openssl-devel
   yum: name={{ item }} state=present
   with_items:
+  - git
   - postgresql92-postgresql-devel
   - openssl-devel
 - name: check pldgbapi extension
