@@ -5,7 +5,6 @@
   with_items:
   - postgresql92-postgresql-devel
   - openssl-devel
-# OPcacheのインストール
 - name: check pldgbapi extension
   command: test -f /opt/rh/postgresql92/root/usr/lib64/pgsql/plugin_debugger.so
   register: result
